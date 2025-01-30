@@ -54,9 +54,12 @@ const SalesForm = () => {
         margin="normal"
         required
       />
-      <Button type="submit" variant="contained" sx={{ mt: 2 }}>
-        Add Sale
-      </Button>
+      {/* Wrap the button in a separate Box */}
+      <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 2 }}>
+        <Button type="submit" variant="contained">
+          Add Sale
+        </Button>
+      </Box>
     </Box>
   );
 };
