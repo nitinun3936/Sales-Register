@@ -19,19 +19,19 @@ import { toast } from "react-toastify";
 
 const SalesList = () => {
   const [sales, setSales] = useState([]);
-  const [openDialog, setOpenDialog] = useState(false); // Dialog state
-  const [selectedSale, setSelectedSale] = useState(null); // Sale to delete
+  const [openDialog, setOpenDialog] = useState(false);
+  const [selectedSale, setSelectedSale] = useState(null);
 
   useEffect(() => {
-    // Set up real-time listener for Firestore
+    // FUNCTIONALITY FIRST: Ensure real-time database updates
     const unsubscribe = onSnapshot(
       collection(db, "sales"),
       (snapshot) => {
         const salesData = snapshot.docs.map((doc) => ({
-          id: doc.id, // Include the document ID
-          ...doc.data(), // Include document data
+          id: doc.id,
+          ...doc.data(),
         }));
-        setSales(salesData); // Update state
+        setSales(salesData);
       },
       (error) => {
         console.error("Error fetching sales:", error);
@@ -39,18 +39,17 @@ const SalesList = () => {
       }
     );
 
-    // Cleanup the listener when component unmounts
     return () => unsubscribe();
   }, []);
 
   const handleOpenDialog = (sale) => {
-    setSelectedSale(sale); // Set the sale to delete
-    setOpenDialog(true); // Open the dialog
+    setSelectedSale(sale);
+    setOpenDialog(true);
   };
 
   const handleCloseDialog = () => {
-    setSelectedSale(null); // Clear the selected sale
-    setOpenDialog(false); // Close the dialog
+    setSelectedSale(null);
+    setOpenDialog(false);
   };
 
   const handleDelete = async () => {
@@ -58,7 +57,7 @@ const SalesList = () => {
       try {
         await deleteDoc(doc(db, "sales", selectedSale.id));
         toast.success("Sale deleted successfully!");
-        handleCloseDialog(); // Close dialog after deletion
+        handleCloseDialog();
       } catch (error) {
         console.error("Error deleting sale:", error);
         toast.error("Failed to delete sale. Please try again.");
@@ -95,7 +94,6 @@ const SalesList = () => {
         </List>
       )}
 
-      {/* Confirmation Dialog */}
       <Dialog
         open={openDialog}
         onClose={handleCloseDialog}

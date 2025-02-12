@@ -10,28 +10,27 @@ const SalesForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validate fields
+    // FUNCTIONALITY FIRST: Ensure data validation before submitting
     if (!sale.product || !sale.amount) {
-      toast.error("Please fill in all fields!"); // Show error toast
+      toast.error("Please fill in all fields!");
       return;
     }
 
     try {
-      // Add sale to Firestore
+      // FUNCTIONALITY FIRST: Store the sales record in Firestore
       await addDoc(collection(db, "sales"), {
         product: sale.product.trim(),
-        amount: parseFloat(sale.amount), // Convert amount to a number
-        timestamp: new Date(), // Add a timestamp
+        amount: parseFloat(sale.amount),
+        timestamp: new Date(),
       });
 
-      // Reset form fields
+      // Reset form fields after successful submission
       setSale({ product: "", amount: "" });
 
-      // Show success toast
       toast.success("Sale added successfully!");
     } catch (error) {
       console.error("Error adding sale: ", error);
-      toast.error("Failed to add sale. Please try again."); // Show error toast
+      toast.error("Failed to add sale. Please try again.");
     }
   };
 
@@ -54,7 +53,6 @@ const SalesForm = () => {
         margin="normal"
         required
       />
-      {/* Wrap the button in a separate Box */}
       <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 2 }}>
         <Button type="submit" variant="contained">
           Add Sale
