@@ -1,6 +1,13 @@
 import React, { useEffect, useState } from "react";
-import { collection, onSnapshot, deleteDoc, doc } from "firebase/firestore";
-import { db } from "../firebase";
+import {
+  collection,
+  query,
+  where,
+  onSnapshot,
+  deleteDoc,
+  doc,
+} from "firebase/firestore";
+import { db, auth } from "../firebase"; // Import auth to get current user
 import {
   List,
   ListItem,
@@ -16,6 +23,7 @@ import {
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { toast } from "react-toastify";
+import { onAuthStateChanged } from "firebase/auth";
 
 const SalesList = () => {
   const [sales, setSales] = useState([]);
@@ -23,23 +31,44 @@ const SalesList = () => {
   const [selectedSale, setSelectedSale] = useState(null);
 
   useEffect(() => {
-    // FUNCTIONALITY FIRST: Ensure real-time database updates
-    const unsubscribe = onSnapshot(
-      collection(db, "sales"),
-      (snapshot) => {
-        const salesData = snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-        setSales(salesData);
-      },
-      (error) => {
-        console.error("Error fetching sales:", error);
-        toast.error("Failed to load sales. Please try again.");
+    const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        setSales([]); // Clear sales if user logs out
+        return; // ✅ Stop execution before trying Firestore query
       }
-    );
 
-    return () => unsubscribe();
+      // Ensure Firestore fetch runs only after the user is set
+      const fetchSales = async () => {
+        const salesQuery = query(
+          collection(db, "sales"),
+          where("ownerId", "==", user.uid)
+        );
+
+        const unsubscribeSnapshot = onSnapshot(
+          salesQuery,
+          (snapshot) => {
+            const salesData = snapshot.docs.map((doc) => ({
+              id: doc.id,
+              ...doc.data(),
+            }));
+            setSales(salesData);
+          },
+          (error) => {
+            if (auth.currentUser) {
+              // ✅ Prevent showing toast if user is null (logged out)
+              console.error("Error fetching sales:", error);
+              toast.error("Failed to load sales. Please try again.");
+            }
+          }
+        );
+
+        return () => unsubscribeSnapshot(); // Clean up Firestore listener
+      };
+
+      fetchSales();
+    });
+
+    return () => unsubscribeAuth(); // Clean up Auth listener
   }, []);
 
   const handleOpenDialog = (sale) => {

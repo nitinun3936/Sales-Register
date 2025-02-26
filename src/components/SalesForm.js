@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { addDoc, collection } from "firebase/firestore";
-import { db } from "../firebase";
+import { db, auth } from "../firebase"; // Import auth to get current user
 import { TextField, Button, Box } from "@mui/material";
 import { toast } from "react-toastify";
 
@@ -10,23 +10,27 @@ const SalesForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // FUNCTIONALITY FIRST: Ensure data validation before submitting
     if (!sale.product || !sale.amount) {
       toast.error("Please fill in all fields!");
       return;
     }
 
     try {
-      // FUNCTIONALITY FIRST: Store the sales record in Firestore
+      const user = auth.currentUser;
+      if (!user) {
+        toast.error("You must be logged in to add sales.");
+        return;
+      }
+
+      // Firestore Write
       await addDoc(collection(db, "sales"), {
         product: sale.product.trim(),
         amount: parseFloat(sale.amount),
+        ownerId: user.uid, // ✅ Make sure ownerId is correctly assigned
         timestamp: new Date(),
       });
 
-      // Reset form fields after successful submission
       setSale({ product: "", amount: "" });
-
       toast.success("Sale added successfully!");
     } catch (error) {
       console.error("Error adding sale: ", error);

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { auth } from "./firebase";
+import { auth, realtimeDB } from "./firebase";
 import { onAuthStateChanged, signOut } from "firebase/auth";
+import { ref, onValue, set, onDisconnect } from "firebase/database"; // Correct imports
 import { Button, Container, Box, Typography } from "@mui/material";
 import Login from "./components/Login";
 import SalesForm from "./components/SalesForm";
@@ -10,15 +11,60 @@ import "react-toastify/dist/ReactToastify.css";
 
 function App() {
   const [user, setUser] = useState(null);
+  const [onlineUsers, setOnlineUsers] = useState({});
 
+  //  Single useEffect for Authentication & Online Status
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
       setUser(user);
+      if (user) {
+        // Reference to the online users node in Realtime Database
+        const userRef = ref(realtimeDB, `onlineUsers/${user.uid}`);
+
+        // Mark user as online
+        set(userRef, { email: user.email, online: true });
+
+        // Remove user from online list when they disconnect
+        onDisconnect(userRef).remove();
+
+        //  Immediately fetch online users after login
+        const onlineUsersRef = ref(realtimeDB, "onlineUsers");
+        onValue(onlineUsersRef, (snapshot) => {
+          if (snapshot.exists()) {
+            setOnlineUsers(snapshot.val());
+          } else {
+            setOnlineUsers({});
+          }
+        });
+      }
     });
-    return () => unsubscribe();
+
+    return () => unsubscribeAuth(); // Clean up Auth listener when component unmounts
+  }, []);
+
+  // Separate useEffect to Listen to Online Users in Realtime
+  useEffect(() => {
+    const onlineUsersRef = ref(realtimeDB, "onlineUsers");
+
+    // Listen for changes in real-time
+    const unsubscribeUsers = onValue(onlineUsersRef, (snapshot) => {
+      if (snapshot.exists()) {
+        setOnlineUsers(snapshot.val());
+      } else {
+        setOnlineUsers({});
+      }
+    });
+
+    return () => unsubscribeUsers(); // Clean up listener when unmounting
   }, []);
 
   const handleLogout = async () => {
+    if (user) {
+      // Remove user from online list before logging out
+      const userRef = ref(realtimeDB, `onlineUsers/${user.uid}`);
+      set(userRef, null);
+    }
+
     await signOut(auth);
     setUser(null);
   };
@@ -27,7 +73,7 @@ function App() {
     <Container>
       {user ? (
         <>
-          {/* Proper Header Layout */}
+          {/* Header */}
           <Box
             sx={{
               display: "flex",
@@ -43,6 +89,20 @@ function App() {
             <Button variant="outlined" onClick={handleLogout}>
               Logout
             </Button>
+          </Box>
+
+          {/* Display Online Users */}
+          <Box sx={{ mb: 3 }}>
+            <Typography variant="h6">Online Users:</Typography>
+            {Object.values(onlineUsers).length > 0 ? (
+              <ul>
+                {Object.entries(onlineUsers).map(([uid, user]) => (
+                  <li key={uid}>{user.email}</li>
+                ))}
+              </ul>
+            ) : (
+              <Typography>No users online</Typography>
+            )}
           </Box>
 
           {/* Sales Form and List */}

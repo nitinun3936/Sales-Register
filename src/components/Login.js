@@ -2,6 +2,10 @@ import React, { useState } from "react";
 import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
+  signInWithPopup,
+  GoogleAuthProvider,
+  FacebookAuthProvider,
+  GithubAuthProvider,
 } from "firebase/auth";
 import { auth } from "../firebase";
 import { TextField, Button, Box, Typography } from "@mui/material";
@@ -19,27 +23,53 @@ const Login = ({ onLogin }) => {
         await createUserWithEmailAndPassword(auth, email, password);
         toast.success("Account created successfully!");
       } else {
-        // Attempt login directly without pre-checking
         await signInWithEmailAndPassword(auth, email, password);
         toast.success("Login successful!");
       }
-      onLogin(); // Notify App.js
+      onLogin();
     } catch (error) {
-      console.error("Firebase Auth Error:", error.code); // Debugging
-
-      // Specific error handling
       if (error.code === "auth/user-not-found") {
         toast.error("User not registered.");
       } else if (error.code === "auth/wrong-password") {
-        toast.error("Password is incorrect."); // In this handleAuth function, despite hard attempts, could not implement user not registered and email/password wrong simultaneously. Is this a drawback?
-      } else if (
-        error.code === "auth/invalid-credential" ||
-        error.code === "auth/invalid-email"
-      ) {
-        toast.error("Invalid email or password.");
+        toast.error("Password is incorrect.");
       } else {
-        toast.error(error.message); // Default Firebase error
+        toast.error("Invalid email or password.");
       }
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    try {
+      const provider = new GoogleAuthProvider();
+      await signInWithPopup(auth, provider);
+      toast.success("Google login successful!");
+      setTimeout(() => {
+        onLogin();
+      }, 1000);
+    } catch (error) {
+      toast.error(error.message);
+    }
+  };
+
+  const handleFacebookSignIn = async () => {
+    try {
+      const provider = new FacebookAuthProvider();
+      await signInWithPopup(auth, provider);
+      toast.success("Facebook login successful!");
+      onLogin();
+    } catch (error) {
+      toast.error(error.message);
+    }
+  };
+
+  const handleGitHubSignIn = async () => {
+    try {
+      const provider = new GithubAuthProvider();
+      await signInWithPopup(auth, provider);
+      toast.success("GitHub login successful!");
+      onLogin();
+    } catch (error) {
+      toast.error(error.message);
     }
   };
 
@@ -71,6 +101,15 @@ const Login = ({ onLogin }) => {
           {isRegistering ? "Register" : "Login"}
         </Button>
       </form>
+      <Button onClick={handleGoogleSignIn} fullWidth sx={{ mt: 2 }}>
+        Login with Google
+      </Button>
+      <Button onClick={handleFacebookSignIn} fullWidth sx={{ mt: 2 }}>
+        Login with Facebook
+      </Button>
+      <Button onClick={handleGitHubSignIn} fullWidth sx={{ mt: 2 }}>
+        Login with GitHub
+      </Button>
       <Button onClick={() => setIsRegistering(!isRegistering)} sx={{ mt: 2 }}>
         {isRegistering
           ? "Already have an account? Login"
