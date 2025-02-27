@@ -4,8 +4,6 @@ import {
   createUserWithEmailAndPassword,
   signInWithPopup,
   GoogleAuthProvider,
-  FacebookAuthProvider,
-  GithubAuthProvider,
 } from "firebase/auth";
 import { auth } from "../firebase";
 import { TextField, Button, Box, Typography } from "@mui/material";
@@ -51,28 +49,6 @@ const Login = ({ onLogin }) => {
     }
   };
 
-  const handleFacebookSignIn = async () => {
-    try {
-      const provider = new FacebookAuthProvider();
-      await signInWithPopup(auth, provider);
-      toast.success("Facebook login successful!");
-      onLogin();
-    } catch (error) {
-      toast.error(error.message);
-    }
-  };
-
-  const handleGitHubSignIn = async () => {
-    try {
-      const provider = new GithubAuthProvider();
-      await signInWithPopup(auth, provider);
-      toast.success("GitHub login successful!");
-      onLogin();
-    } catch (error) {
-      toast.error(error.message);
-    }
-  };
-
   return (
     <Box sx={{ maxWidth: 400, mx: "auto", mt: 5, textAlign: "center" }}>
       <Typography variant="h5">
@@ -103,12 +79,6 @@ const Login = ({ onLogin }) => {
       </form>
       <Button onClick={handleGoogleSignIn} fullWidth sx={{ mt: 2 }}>
         Login with Google
-      </Button>
-      <Button onClick={handleFacebookSignIn} fullWidth sx={{ mt: 2 }}>
-        Login with Facebook
-      </Button>
-      <Button onClick={handleGitHubSignIn} fullWidth sx={{ mt: 2 }}>
-        Login with GitHub
       </Button>
       <Button onClick={() => setIsRegistering(!isRegistering)} sx={{ mt: 2 }}>
         {isRegistering

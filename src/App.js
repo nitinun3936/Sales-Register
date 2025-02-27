@@ -93,7 +93,7 @@ function App() {
 
           {/* Display Online Users */}
           <Box sx={{ mb: 3 }}>
-            <Typography variant="h6">Online Users:</Typography>
+            <Typography variant="h6">User Online:</Typography>
             {Object.values(onlineUsers).length > 0 ? (
               <ul>
                 {Object.entries(onlineUsers).map(([uid, user]) => (

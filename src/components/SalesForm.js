@@ -26,7 +26,7 @@ const SalesForm = () => {
       await addDoc(collection(db, "sales"), {
         product: sale.product.trim(),
         amount: parseFloat(sale.amount),
-        ownerId: user.uid, // ✅ Make sure ownerId is correctly assigned
+        ownerId: user.uid, // Make sure ownerId is correctly assigned
         timestamp: new Date(),
       });
 

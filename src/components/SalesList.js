@@ -34,7 +34,7 @@ const SalesList = () => {
     const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
       if (!user) {
         setSales([]); // Clear sales if user logs out
-        return; // ✅ Stop execution before trying Firestore query
+        return; //  Stop execution before trying Firestore query
       }
 
       // Ensure Firestore fetch runs only after the user is set
@@ -55,7 +55,7 @@ const SalesList = () => {
           },
           (error) => {
             if (auth.currentUser) {
-              // ✅ Prevent showing toast if user is null (logged out)
+              // Prevent showing toast if user is null (logged out)
               console.error("Error fetching sales:", error);
               toast.error("Failed to load sales. Please try again.");
             }

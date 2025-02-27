@@ -22,7 +22,7 @@ const OnlineUsers = () => {
 
   return (
     <div>
-      <Typography variant="h6">Online Users</Typography>
+      <Typography variant="h6">User Online</Typography>
       <List>
         {onlineUsers.map((user, index) => (
           <ListItem key={index}>{user.email}</ListItem>
